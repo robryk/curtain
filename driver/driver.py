@@ -9,15 +9,28 @@ import time
 
 class XGrabber(object):
     def __init__(self, executable = 'xgrabber', font = None, no_lock = False):
-        args = [ executable ]
+        self.args = [ executable ]
         if no_lock:
-            args.append('-n')
+            self.args.append('-n')
         if font is not None:
-            args += [ '-f', font ]
-        self.proc = subprocess.Popen(args, stdin=subprocess.PIPE)
+            self.args += [ '-f', font ]
+        self.proc = None
+        self.text = ''
+        self.ensure_started()
+    
+    def ensure_started(self):
+        if self.proc:
+            self.proc.poll()
+            if self.proc.returncode is not None:
+                logging.error('xgrabber terminated')
+                self.proc = None
+        if self.proc is None:
+            self.proc = subprocess.Popen(self.args, stdin=subprocess.PIPE)
+        self.proc.stdin.write(self.text + '\n')
 
     def display_text(self, text):
-        self.proc.stdin.write(text + '\n')
+        self.text = text
+        self.ensure_started()
 
     def unlock(self):
         self.proc.kill()
