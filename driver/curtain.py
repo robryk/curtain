@@ -15,6 +15,7 @@ class XGrabber(object):
         if font is not None:
             self.args += [ '-f', font ]
         self.proc = None
+        self.font = font
         self.text = ''
         self.ensure_started()
     
@@ -100,18 +101,17 @@ def mainloop(config_name, dry_run):
             config = new_config
         except Exception as e:
             logging.error('Cannot open config %s: %s', args.config, e)
+        if grabber and (config.font != grabber.font or not config.should_lock()):
+            logging.info('Killing xgrabber')
+            grabber.unlock()
+            grabber = None
+            logging.info('Xgrabber killed')
         if config.should_lock():
             if grabber is None:
                 logging.info('Starting xgrabber')
                 grabber = XGrabber(font = config.font, no_lock = args.dry_run)
                 logging.info('Xgrabber started')
             grabber.display_text(config.message())
-        else:
-            if grabber:
-                logging.info('Killing xgrabber')
-                grabber.unlock()
-                grabber = None
-                logging.info('Xgrabber killed')
         time.sleep(0.2)
 
 argparser = argparse.ArgumentParser()
