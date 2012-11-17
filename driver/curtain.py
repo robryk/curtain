@@ -111,7 +111,10 @@ def mainloop(config_name, dry_run):
                 logging.info('Starting xgrabber')
                 grabber = XGrabber(font = config.font, no_lock = args.dry_run)
                 logging.info('Xgrabber started')
-            grabber.display_text(config.message())
+            try:
+                grabber.display_text(config.message())
+            except Exception as e:
+                logging.error('Cannot set xgrabber''s message: %s', e)
         time.sleep(0.2)
 
 argparser = argparse.ArgumentParser()
